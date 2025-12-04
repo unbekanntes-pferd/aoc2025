@@ -73,14 +73,13 @@ impl From<&str> for Grid {
         let points = value
             .lines()
             .enumerate()
-            .map(|(row_idx, row)| {
+            .flat_map(|(row_idx, row)| {
                 row.chars()
                     .enumerate()
                     .filter(|(_, c)| *c == '@')
                     .map(|(col_idx, _)| Point(col_idx as isize, row_idx as isize))
                     .collect::<Vec<_>>()
             })
-            .flatten()
             .collect();
 
         Self(points)
