@@ -4,7 +4,7 @@ fn main() {
     let input = include_str!("../../assets/day06/input.txt");
     
     let (numbers, operations) = parse(input);
-    let part1 = part1(numbers, operations);
+    let part1 = solve_part1(numbers, operations);
     
     println!("Part 1: {part1}");
 }
@@ -57,7 +57,7 @@ fn parse(input: &str) -> (HashMap<usize, Vec<usize>>, HashMap<usize, Operation>)
     (numbers, operations)
 }
 
-fn part1(numbers: HashMap<usize, Vec<usize>>, operations: HashMap<usize, Operation>) -> usize {
+fn solve_part1(numbers: HashMap<usize, Vec<usize>>, operations: HashMap<usize, Operation>) -> usize {
     numbers.keys().flat_map(|idx| {
         match operations.get(idx) {
             None => Err("invalid input"),
@@ -96,7 +96,7 @@ mod tests {
     fn test_part1() {
         let input = "123 328  51 64\n45 64  387 23\n6 98  215 314\n*   +   *   +";
         let (numbers, operations) = parse(input);
-        let part1 = part1(numbers, operations);
+        let part1 = solve_part1(numbers, operations);
         assert_eq!(4277556, part1);
     }
 }
