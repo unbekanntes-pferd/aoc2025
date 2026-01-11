@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, collections::HashSet};
+use std::{collections::HashSet};
 
 fn main() {
     let input = include_str!("../../assets/day03/input.txt");
@@ -9,10 +9,18 @@ fn main() {
         .sum();
 
     println!("Part 1: {result}");
+    
+    let result2: usize = input
+        .lines()
+        .map(Bank::from)
+        .map(|mut bank| bank.find_max_twelve_digit_num())
+        .sum();
+    
+    println!("Part 2: {result2}");
 }
 
 #[derive(PartialOrd, PartialEq, Eq, Ord, Debug, Clone, Copy)]
-struct Battery(usize, usize);
+struct Battery(u8, usize);
 
 struct Bank(Vec<Battery>);
 
@@ -32,20 +40,6 @@ impl From<&str> for Bank {
 }
 
 impl Bank {
-    fn sort(&mut self) {
-        self.0.sort_by(|first, second| {
-            let order = first.1.cmp(&second.1);
-
-            if order == Ordering::Equal {
-                return first.1.cmp(&second.1);
-            }
-
-            order
-        });
-        
-        self.0 = self.0.iter().rev().cloned().collect()
-    }
-
     fn find_max_two_digit_num(&self) -> usize {
         let mut possible_nums = HashSet::<usize>::new();
 
@@ -65,7 +59,30 @@ impl Bank {
     }
 
     fn find_max_twelve_digit_num(&mut self) -> usize {
-        todo!()
+        let mut idx_list = [0usize; 12];
+        let mut curr_pos = 0usize;
+        let mut skips = self.0.len() - 12;
+        
+        for idx in 0..12 {
+            let slice = &self.0[curr_pos..=curr_pos + skips];
+            let max_val = slice.iter().rev().max_by_key(|battery| battery.0).expect("no max value");
+            idx_list[idx] = max_val.1;
+            skips -= max_val.1 - curr_pos;
+            curr_pos = max_val.1 + 1;
+        }
+        
+        self.build_number_from_idx_list(&idx_list)
+    }
+    
+    fn build_number_from_idx_list(&mut self, idx_list: &[usize; 12]) -> usize {
+        let mut nums = [0u8; 12];
+        
+        for (i, idx) in idx_list.iter().enumerate() {
+            let num = self.0[*idx].0;
+            nums[i] = num;
+        }
+        
+        nums.into_iter().fold(0, |acc, num| acc * 10 + num as usize)
     }
 }
 
@@ -76,7 +93,7 @@ mod tests {
 
     #[test]
     fn test_find_max_in_bank() {
-        let mut bank: Bank = "987654321111111".into();
+        let bank: Bank = "987654321111111".into();
         
         assert_eq!(98, bank.find_max_two_digit_num());
 
@@ -91,33 +108,13 @@ mod tests {
     }
     
     #[test]
-    fn test_sort_bank() {
+    fn test_max_12_digit_numbers() {
         let mut bank: Bank = "987654321111111".into();
         
-        bank.sort();
+        assert_eq!(bank.find_max_twelve_digit_num(), 987654321111);
         
-        assert_eq!(Battery(9,0), bank.0[0]);
-        assert_eq!(Battery(8,1), bank.0[1]);
-
         let mut bank: Bank = "811111111111119".into();
-        bank.sort();
         
-        assert_eq!(Battery(8,0), bank.0[0]);
-        assert_eq!(Battery(8,1), bank.0[1]);
-        
-
-        let mut bank: Bank = "234234234234278".into();
-
-        bank.sort();
-        
-        assert_eq!(Battery(9,0), bank.0[0]);
-        assert_eq!(Battery(8,1), bank.0[1]);
-        
-        let mut bank: Bank = "818181911112111".into();
-
-        bank.sort();
-        
-        assert_eq!(Battery(9,0), bank.0[0]);
-        assert_eq!(Battery(8,1), bank.0[1]);
+        assert_eq!(bank.find_max_twelve_digit_num(), 811111111119); 
     }
 }
